@@ -1,0 +1,601 @@
+<<echo=FALSE, warning=FALSE, message=FALSE>>=
+library(knitr)
+library(readxl)
+library(xtable)
+library(e1071)
+library(EnvStats)
+library(lawstat)
+knit_theme$set("acid")
+opts_chunk$set(fig.show='hold',background = '#F7F7F7', dpi = 100, cache=FALSE, warning=FALSE, size='small',  message=FALSE, tidy=FALSE)
+options(scipen = 100, digits = 2)
+@
+
+%Sys.setenv(PATH=paste(Sys.getenv("PATH"), "C:/Program Files (x86)/MiKTeX 2.9/miktex/bin", sep=.Platform$path.sep))
+
+\documentclass[12pt,a4paper,authoryear]{article}
+\usepackage[spanish]{babel} %Para cambiar a espa;ol
+%\usepackage{bibliography}
+\usepackage{float}
+%\usepackage[latin1]{inputenc} Lee tildes
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc} %Cambiar fuente
+\usepackage{amsfonts,amssymb,amsmath}
+\usepackage[top=3.5cm,left=2.5cm,bottom=2.5cm,right=2cm, headsep=.65in]{geometry} %margenes
+\usepackage[bookmarks=true,colorlinks=true,linkcolor=blue,citecolor=black,urlcolor=blue]{hyperref}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{enumerate} % enumerados
+\pagenumbering{gobble}
+
+\usepackage{textcomp}
+\usepackage{fancyhdr}
+\usepackage{tabulary}
+\usepackage{booktabs}
+\usepackage{multirow, array}
+\usepackage{float}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{dblfloatfix}
+\usepackage{soul}
+\usepackage[dvipsnames]{xcolor}
+
+\setlength{\parskip}{1.2ex}
+\setlength{\parindent}{0em}
+\clubpenalty = 10000
+\widowpenalty = 10000
+
+%--------------------------------------------------------------------------------
+%----------------------Hacer que quepan más tablas por página--------------------
+\renewcommand{\topfraction}{0.95}
+\renewcommand{\bottomfraction}{0.95}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\floatpagefraction}{0.35}
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{3}
+\setcounter{totalnumber}{6}
+%--------------------------------------------------------------------------------
+%--------------------------------------------------------------------------------
+
+%%%%Encabezados y pies
+%\lhead[]{Sección \thesection. \leftmark}
+%\lhead[\thepage]{\thesection. \rightmark}
+\rhead[SECCIÓN \thechapter. \leftmark]{}
+%\chead[no]{como}
+\rfoot[\thepage]{\vspace{-1.5cm} \thepage}
+\cfoot[\thepage]{}
+\renewcommand{\headrulewidth}{0pt}
+
+\pagestyle{fancy}
+%\fancyhf{}
+\lhead{\begin{picture}(0,0) 
+\put(-10,-15)
+{\includegraphics[width=30mm]
+{./unc}} 
+\end{picture}}
+
+\rhead{\begin{picture}(0,0) 
+\put(-90,-15)
+{\includegraphics[width=35mm]
+{./fca}} 
+\end{picture}}
+
+\chead{\begin{picture}(0,0)
+\put(-110,-20)
+{\includegraphics[width=35mm]
+{./fce}}
+\put(25,-15)
+{\includegraphics[width=35mm]
+{./famaf}}
+\end{picture}}
+
+% \chead{\begin{picture}(0,0)
+% \put(-90,-20)
+% {\includegraphics[width=35mm]
+% {./fce}}
+% \end{picture}}
+
+%\cfoot{\href{https://www.rusersgroup.com}{R Users Group - Ecuador\textsuperscript{\textregistered}}}
+
+
+%-------------------------------------------------------------------------------
+ 
+  \begin{document}
+  
+\title{\vspace{-1cm} {\sc Universidad Nacional de Córdoba}\\
+\vspace{2cm}
+  {\sc Maestría en Estadística Aplicada} \\
+       \vspace{2cm} {Introducción al Análisis Estadístico}}
+       
+   \author{
+      \hspace{1cm} Matías Alfonso \footnote{\href{mailto:matias.alfonso@gmail.com}{\nolinkurl{matias.alfonso@gmail.com}}} \\ 
+   \hspace{0.5cm} Guillermina Senn  \footnote{\href{mailto:senn.guillermina@gmail.com}{\nolinkurl{senn.guillermina@gmail.com}}}  \\
+   \hspace{0.5cm} Andrés Peña M.  \footnote{\href{mailto:andres.pena.montalvo@gmail.com}{\nolinkurl{andres.pena.montalvo@gmail.com}}}\\
+   \\
+   \small\emph{Cohorte 2018-2019}\\ 
+   \vspace{0.1cm}
+   \small\emph{Córdoba-Argentina}
+}
+  
+\date{\vspace{1cm} Junio 2018}
+
+ \maketitle
+\thispagestyle{fancy}
+
+\renewcommand{\abstractname}{Guía de Actividades 2}  
+\begin{abstract}
+Es importante que la utilización de cada una de las herramientas estadísticas esté debidamente justificada. Se evaluará no sólo la aplicación de las mismas sino también la capacidad para identificar adecuadamente las estrategias y los modelos apropiados. 
+
+La debida fundamentación del trabajo realizado es esencial para que el docente pueda evaluar los logros obtenidos en el proceso de enseñanza-aprendizaje, y pueda realizar los ajustes necesarios antes de llegar a las instancias finales de evaluación.
+
+Si bien los problemas están planteados bajo la forma de ejercicios, no se limite a la mera aplicación de fórmulas, sino que haga una defensa conceptual de la solución planteada, y elabore conclusiones concretas en función del problema analizado.
+\\
+
+\noindent\textit{\textbf{Docentes:}} Dra. Patricia Caro y Mgter. Mariana Gonzalez.  
+\end{abstract}  
+
+
+%\clearpage \newpage  
+
+%  \tableofcontents % indice de contenidos
+
+%\clearpage \newpage
+
+%\listoffigures
+\clearpage \newpage
+
+\pagenumbering{arabic}
+
+\renewcommand{\thesection}{\roman{section}} 
+
+  \section{Actividad 1}
+Seguiremos en esta actividad trabajando con los salarios de los profesores en una universidad de
+Ohio, U.S.A. entre 1993-1994 para investigar si existían pruebas de la desigualdad de género en
+los salarios de la universidad como así también estudiar la correlación del salario con otras
+variables.  
+  
+Se sabe que la variable Salario durante el año académico de los profesores titulares sigue una
+distribución con media de $61133$ dólares y desviación estándar de $9500$ dólares.
+
+\renewcommand{\labelenumi}{\alph{enumi})}
+\renewcommand{\labelenumii}{\arabic{enumii})}
+\begin{enumerate} 
+
+  \item Se elige una muestra de 16 profesores (con reemplazo) y se desea determinar la probabilidad de que la media muestral difiera del promedio poblacional en menos de 1000 dólares. 
+  
+    \begin{enumerate} 
+  
+    \item Realicen el cálculo considerando que la variable Salario se distribuye Normal. Dejen indicada la distribución de probabilidad de la variable Media Muestral. Justifiquen.
+\\
+\\
+    Sabemos que en la población la variable salario $X$ sigue una distribución normal:
+    
+$$X\sim N(\mu,\ \sigma^2)$$
+
+$$
+X \sim N(61333,\ 9500^2)
+$$
+
+entonces la distribución de probabilidad de la variable aleatoria $\bar{X}$ (Media Muestral) es la siguiente:
+
+$$\bar{X}\sim N(\mu,\ \frac{\sigma}{\sqrt{n}})$$
+
+$$
+\bar{X} \sim N(61333,\ 9500/\sqrt{16})
+$$
+Queremos calcular entonces:  
+
+$$
+\begin{aligned} 
+P(|\bar{X} - \mu| < 1000) & = P(-1000 < \bar{X} - \mu < 1000) \\
+& = P(-1000 + \mu < \bar{X} < 1000 + \mu) \\
+& = P(-1000 + 61133 < \bar{X} < 1000 + 61133) \\
+& = P(60133 < \bar{X} < 62133) = F(62133)-F(60133) \\
+& = 0.3263
+\end{aligned}
+$$
+
+<<echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE>>=
+mu <- 61133
+sd <- 9500
+n <- 16
+
+pnorm(62133, mu, sd/sqrt(n)) - pnorm(60133, mu, sd/sqrt(n))
+@  
+  
+    \item Realicen el cálculo considerando que la variable Salario tiene distribución desconocida. Justifiquen
+
+Como la población tiene distribución desconocida y el tamaño de la muestra es chico, se podría aplicar la desigualdad de Chevyshev. 
+$$
+\begin{aligned}
+P(|\bar{X} - \mu| \le d) \ge 1 - \frac{\sigma_{\bar{x}}^2}{d^2}\ =\  P(|\bar{X} - \mu| \le 1000) \ge 1 - \frac{\frac{9500^2}{16}}{1000^2} \\
+& = -4.6106
+\end{aligned}
+$$
+
+<<echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE>>=
+1 - 9500^2/(1000^2 * 16)
+@
+
+Sin embargo la regla de Chevyshev sólo permite
+establecer cotas de probabilidad para intervalos simétricos, en los que el número
+$d$ que se suma y resta a la media es mayor que la desviación estándar.  En este caso como $d=1000$ es menor que $\sigma=9500$ la probabilidad es inferior a cero, por lo cual la desigualdad no es aplicable.  Si se tuviera la información muestral detallada se podría optar por realizar una transformación (logarítmica por ejemplo) a la variable Salario para que  cumpla propiedades de normalidad y poder darle el tratamiento como tal. 
+
+    \end{enumerate}
+
+  \item Se elige una muestra de 64 profesores (con reemplazo) y se desea determinar la probabilidad de que la media muestral difiera del promedio poblacional en menos de 1000 dólares. Realicen el cálculo y justifiquen.
+  
+En este caso, como $n > 30$, podemos utilizar el Teorema Central del Límite, y realizar una aproximación por la distribución normal.
+
+
+$$
+\begin{aligned}
+P(\mu_{0} < \bar{X} < \mu_{1}) & =  P(60133 < \bar{X} < 62133)\\
+& = P({\frac{\overline{X}_n - \mu_{0}}{\sigma / \sqrt{n}} < Z < {\frac{\overline{X}_n - \mu_{1}}{\sigma / \sqrt{n}}) \\
+& = \Phi_{0,1}(\frac{62133 - 61133}{9500 / \sqrt{64}}) - \Phi_{0,1}(\frac{60133 - 61133}{9500 / \sqrt{64}}) \\
+& = 0.6003
+\end{aligned}
+$$
+
+<<echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE>>=
+mu <- 61133
+sd <- 9500
+n <- 64
+
+pnorm((62133-mu)/(sd/sqrt(n)))-pnorm((60133-mu)/(sd/sqrt(n))) #Estandarizando
+pnorm(62133, mu, sd/sqrt(n)) - pnorm(60133, mu, sd/sqrt(n)) #Directo
+@  
+
+\end{enumerate}
+
+
+  \section{Actividad 2}
+Los ejercicios que siguen deben resolverse a partir de la información de la base de datos “Universidad”.
+
+\renewcommand{\labelenumi}{\alph{enumi})}
+\begin{enumerate} 
+
+  \item Construyan un intervalo del 98\%{} de confianza para la proporción de docentes mujeres, analizado por cargo en la Universidad. Interpreten. 
+  
+<<echo=FALSE, eval=TRUE, warning=FALSE, message=FALSE>>=
+## Cargamos la base
+universidad <- read_xls("C:/Universidad.xls")
+## Renombramos las variables
+names(universidad) <- c("salario", "rentabilidad", "graduacion",
+"antiguedad", "cargo", "genero")
+@    
+
+Primero calculamos la proporción de docentes mujeres en la Universidad:
+<<echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE, results='asis'>>=
+tabla <- table(factor(universidad$genero, labels = c("Femenino", 
+                                                     "Masculino")))
+prop <- as.data.frame(prop.table(tabla)); names(prop)<-c("Género", "p")
+xtable(prop, "Proporción estimada")
+@  
+
+Por otro lado, $\hat{p} * n = 128$
+<<echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE>>=
+p <- prop[prop$Género=="Femenino", "p"]
+n <- nrow(universidad)
+
+n*p
+@  
+
+Como n*p es mayor a 5, podemos utilizar la aproximación normal de $\hat{p}$. Entonces:
+
+$$
+P(-z < \frac{\hat{p} - p}{\sqrt{\frac{p(1-p)}{n}}} < z) = 1 - \alpha
+$$
+
+$$LIC=\hat{p}-z\sqrt{\frac{\hat{p}(1-\hat{p})}{n}}$$
+$$LSC=\hat{p}+z\sqrt{\frac{\hat{p}(1-\hat{p})}{n}}$$
+
+Establecemos un nivel de significación de 0.02 ($\alpha = 0.02$) y buscamos los valores de $z_{\frac{\alpha}{2}}$ y $z_{\frac{(1-\alpha)}{2}}$ y construimos el intervalo de confianza para $p$.
+
+<<echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE>>=
+confint <- p + c(1, -1) * qnorm(.01) * sqrt(p * (1-p) / n)
+confint
+@  
+
+Tenemos entonces un 98\%{} de probabilidad de que el intervalo \Sexpr{round(confint[1], 4)} y \Sexpr{round(confint[2], 4)} contenga la proporción de mujeres en la población.
+
+  \item Determinen el tamaño de muestra (con reemplazo) necesario para reducir a 0,05 la amplitud del intervalo de confianza anterior, para los profesores Titulares. Consideren un valor de p=0,05.
+
+% Sabemos que $e$ es el error máximo de estimación:
+% 
+% $$|e|=z*\frac{\hat{p}(1-\hat{p})}{\sqrt{n}}$$
+% 
+% <<echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE>>=  
+% e <- abs(qnorm(.01) * sqrt(p * (1-p) / n))
+% e
+% @
+
+Sabemos que la amplitud del intervalo de confianza es $LS - LI = 2e$, entonces:
+
+$$
+\begin{aligned}
+2e &= 0.05 \\
+e &= 0.025
+\end{aligned}
+$$
+
+Ahora bien, sabemos que:
+
+$$
+\begin{aligned}
+n &= \frac{z_{\small{0.99}}^2\hat{p}(1-\hat{p})}{e^2} \\
+& \approx 810
+\end{aligned}
+$$
+
+<<echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE>>=
+z <- qnorm(.99)
+p <- 0.05
+e <- 0.025
+z^2 * p * (1-p) / e^2
+@  
+
+\end{enumerate}
+
+  \section{Actividad 3}
+  
+¿Existen evidencias para apoyar la hipótesis de que la varianza de la antigüedad es significativamente distinta de 50 horas? Considere un nivel de significación del 0,01. En caso de corresponder construya una estimación por intervalo del 99\%{} e interprete. ¿Qué supuesto/s debe hacer para aplicar la prueba? Evalúe si se cumplen. Plantee las hipótesis de trabajo y el estadístico de prueba\footnote{En esta pregunta hay algún error en la redacción. Pregunta si la varianza es diferente a 50 horas. Sin embargo la antigüedad está medida en años, y al ser la varianza, son años^2}.
+
+Tenemos una función que nos relaciona la varianza muestral con la varianza poblacional, a saber:
+$$
+\frac{(n-1)s^2}{\sigma^2} \sim \chi^2_{n-1}
+$$
+
+Buscamos entonces
+$$
+\begin{aligned}
+& P\Bigg(\chi^2_{\frac{\alpha}{2}} \le \frac{(n-1)s^2}{\sigma^2} \le \chi^2_{\frac{(1- \alpha)}{2}} \Bigg) \\
+& = P \Bigg( \frac{(n-1)s^2}{\chi^2_{\frac{(1- \alpha)}{2}}} \le \sigma^2 \le \frac{(n-1)s^2}{\chi^2_{\frac{\alpha}{2}}} \Bigg) \\
+\end{aligned}
+$$
+
+Identificamos las hipótesis:
+$$H_0: \sigma^2 = 50$$ 
+$$H_1: \sigma^2 \ne 50$$
+
+Buscamos los valores para $\chi^2_{\frac{\sigma}{2}}$ y $\chi^2_{\frac{(1- \sigma)}{2}}$ considerando $\alpha = 0.01$ y evaluamos si el $\chi_{\small{obs}}$ se encuentra dentro del intervalo.
+
+<<echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE>>=
+s <- sd(universidad$antiguedad)
+n <- length(universidad$antiguedad)
+alpha <- .01
+
+## Chi observado
+(n-1)*s^2/50
+## Chi teóricos
+qchisq(c(alpha/2, (1-alpha)/2), n-1)
+@  
+
+Como el $\chi_{\small{obs}}$ se encuentra en la zona de rechazo, entonces rechazo la $H_0$. Es decir que la varianza es significativamente distinta ($\alpha = 0.01$) a 50 $años^2$.
+Construimos un intervalo de confianza para la varianza,
+$$
+\begin{aligned}
+& P \Bigg( \frac{(n-1)s^2}{\chi^2_{\frac{(1- \alpha)}{2}}} \le \sigma^2 \le \frac{(n-1)s^2}{\chi^2_{\frac{\alpha}{2}}} \Bigg) 
+\end{aligned}
+$$
+
+Construimos el intervalo:
+
+<<echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE>>=
+## Intervalo
+(n-1)*s^2/qchisq(c(0.995, .005), n-1)
+@  
+
+La prueba de hipótesis supone que la variable se distribuye de manera normal. Evaluemos si estos supuestos se cumplen:
+
+<<fig.height=3.5, fig.width=3.5, echo=TRUE, fig.align='center', fig.show='hold', message=FALSE, warning=FALSE, comment="", eval=TRUE>>=
+## Creo el histograma
+h <- hist(universidad$antiguedad, col = "lightblue",
+          xlab = "Antiguedad",
+          ylab = "Frecuencia",
+          main = "")
+
+## Calculamos la densidad empírica
+d <- density(universidad$antiguedad)
+x <- d$x
+y <- d$y * length(universidad$antiguedad) * diff(h$mids[1:2])
+
+## Agregamos la densidad empírica al gráfico
+lines(x, y, col = "red", lwd = 2)
+
+## Cuantiles teóricos
+xfit <- seq(min(x),max(x),length=100) 
+yfit <- dnorm(xfit,mean=mean(x),sd=sd(x)) 
+yfit <- yfit*diff(h$mids[1:2])*length(x) 
+lines(xfit, yfit, col="blue", lwd=2)
+@
+
+
+<<fig.height=3.5, fig.width=3.5, echo=TRUE, fig.align='center', fig.show='hold', message=FALSE, warning=FALSE, comment="", eval=TRUE>>=
+## Realizamos un qq-plot
+z <- with(universidad, (antiguedad - mean(antiguedad))/sd(antiguedad))
+cuantiles <- cumsum(rep(1/(length(z) + 1), length(z)))
+cuantiles <- qnorm(cuantiles)
+
+plot(cuantiles, z[order(z)],
+     xlab = "Cuantiles Teóricos",
+     ylab = "Cuantiles Empíricos")
+abline(0, 1, col = "red", lwd = 2)
+@
+
+<<echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE>>=
+## Prueba de Normalidad - Shapiro Wilks
+shapiro.test(universidad$antiguedad)
+
+## Prueba de Normalidad - Kolmorogov Smirnof
+media<-mean(universidad$antiguedad)
+desv<-sd(universidad$antiguedad)
+ks.test(universidad$antiguedad, "pnorm", 
+        mean=media, sd=desv)
+        
+## Asimetría y curtosis
+skewness(universidad$antiguedad)
+kurtosis(universidad$antiguedad)
+@  
+
+Si bien la prueba de Shapiro-Wilks da significativa, este procedimiento es sensible a pequeñas desviaciones cuando el tamaño de la muestra es grande, como en este caso. La distribución es levemente asimétrica a la derecha y platicúrtica. El qqplot muestra un ajuste regularmente bueno a la distribución normal.
+
+  \section{Actividad 4}
+
+\renewcommand{\labelenumi}{\alph{enumi})}
+\begin{enumerate} 
+
+  \item Prueben, mediante una prueba estadística adecuada, si existen evidencias de diferencias estadísticamente significativas en el salario de los profesores según su género. No olviden el planteo de las correspondientes hipótesis, así como el análisis de los resultados obtenidos. Trabajen con un nivel de significación del 5\%{}. 
+  
+Para evaluar si existen diferencias significativas en el salario de los profesores según su género, realizamos una prueba t para diferencia de medias, con muestras independientes y varianzas supuestas desiguales.
+Las hipótesis estadísticas son:
+$$
+\begin{aligned}
+H_0: \mu_1 - \mu_2 = 0 \\  
+H_1: \mu_1 - \mu_2 \ne 0  
+\end{aligned}
+$$  
+Veamos los resultados:
+<<echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE>>=
+with(universidad, t.test(salario[genero == 1], salario[genero == 0],
+                         var.equal = FALSE))
+@
+
+<<echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE>>=
+## Supuesto de normalidad
+res <- with(universidad, c(salario[genero == 0] - mean(salario[genero == 0]),
+                        salario[genero == 1] - mean(salario[genero == 1])))
+@
+
+
+<<fig.height=3.5, fig.width=3.5, echo=TRUE, fig.align='center', fig.show='hold', message=FALSE, warning=FALSE, comment="", eval=TRUE>>=
+hist(res, col = "lightblue", xlab = "Residuos")
+@
+
+<<echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE>>=
+## Realizamos un qq-plot
+cuantiles <- cumsum(rep(1/(length(res) + 1), length(res)))
+cuantiles <- qnorm(cuantiles)
+@
+
+<<fig.height=3.5, fig.width=3.5, echo=TRUE, fig.align='center', fig.show='hold', message=FALSE, warning=FALSE, comment="", eval=TRUE>>=
+plot(cuantiles, res[order(res)],
+     xlab = "Cuantiles Teóricos",
+     ylab = "Cuantiles Empíricos")
+abline(0, sd(res), col = "red", lwd = 2)
+@
+
+<<echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE>>=
+## Shapiro-Wilk
+shapiro.test(res)
+## Prueba de Normalidad - Kolmorogov Smirnof
+#media<-0
+media<-mean(res)
+desv<-sd(res)
+ks.test(res, "pnorm", 
+        mean=media, sd=desv)
+
+## Prueba de igualdad de varianzas
+with(universidad, var.test(salario[genero == 0], salario[genero == 1]))
+
+##Prueba de Levene para la igualdad de varianzas
+levene.test(universidad$salario, universidad$genero, location="mean")
+@  
+
+La prueba de normalidad Shapiro-Wilk arroja una diferencia significativa para el supuesto de normalidad. Sin embargo, esta prueba es sensible a pequeñas desviaciones cuando el tamaño de la muestra es grande. Mediante análisis gráficos de los residuos podemos observar que son aproximadamente normales.  
+La prueba para la igualdad de varianzas nos dio una diferencia significativa ($F_{(127; 385)}$ = 0.53, p < 0.01) para el supuesto de igualdad, por lo que realizamos una prueba $t$ para diferencia de medias con varianzas supestas desiguales.  
+Observamos una diferencia significativa para la diferencia de medias ($t_{(297.23)}$ = 10.25, p < 0.01). El salario de las mujeres (M = 42916.60) es significativamente menor al de los hombres (M = 53499.24). Hay un 95\%{} de confianza de que las mujeres cobren entre 8213 U\$D y 12953 U\$D menos que los hombres.
+
+  \item En caso de corresponder construyan una estimación por intervalo del 95\%{} e interpreten.
+
+\end{enumerate} 
+
+
+  \section{Actividad 5}
+Propongan y realicen otra prueba de hipótesis de las estudiadas en la materia, que sea coherente con los objetivos del estudio\footnote{Recuerden que el propósito del estudio fue investigar si existían pruebas de la desigualdad de género en los salarios de la universidad como así también estudiar la correlación del salario con otras variables.}. Justifiquen la elección del instrumento estadístico e interpreten los resultados obtenidos.
+
+Considerando que nos interesa saber si existe desigualdades de género en los salarios de la universidad, podemos preguntarnos si la rentabilidad de los salarios es diferente para hombres y mujeres. Para ello, realizamos una prueba t para la diferencia de medias. Las hipótesis estadísticas son:
+
+$$
+\begin{aligned}
+H_0: \mu_1 - \mu_2 = 0 \\  
+H_1: \mu_1 - \mu_2 \ne 0  
+\end{aligned}
+$$  
+Veamos los resultados:
+
+<<echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE>>=
+with(universidad, t.test(rentabilidad[genero == 1], rentabilidad[genero == 0],
+                         var.equal = TRUE))
+@ 
+
+Los salarios de las mujeres son significativamente menos rentables que los de los hombres, p < 0.01, 95\%{} CI[0.033, 0.092]. Es decir que hay un 95\%{} de confianza en que el trabajo de las mujeres es entre un 3.31\%{} y un 9.2\%{} menos rentable que el de los hombres. Recordemos que la rentabilidad está definida como el ratio entre el salario promedio nacional pagado en la disciplina y el promedio nacional de todas las disciplinas.
+
+Evaluemos si se cumplen los supuestos de normalidad y homogeneidad de varianzas.
+
+<<echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE>>=
+res <- with(universidad, c(rentabilidad[genero == 0] - mean(rentabilidad[genero == 0]),
+                        rentabilidad[genero == 1] - mean(rentabilidad[genero == 1])))
+@
+
+
+<<fig.height=3.5, fig.width=3.5, echo=TRUE, fig.align='center', fig.show='hold', message=FALSE, warning=FALSE, comment="", eval=TRUE>>=
+hist(res, col = "lightblue", xlab = "Residuos")
+@
+
+<<echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE>>=
+## Realizamos un qq-plot
+cuantiles <- cumsum(rep(1/(length(res) + 1), length(res)))
+cuantiles <- qnorm(cuantiles)
+@
+
+<<fig.height=3.5, fig.width=3.5, echo=TRUE, fig.align='center', fig.show='hold', message=FALSE, warning=FALSE, comment="", eval=TRUE>>=
+plot(cuantiles, res[order(res)],
+     xlab = "Cuantiles Teóricos",
+     ylab = "Cuantiles Empíricos")
+abline(0, sd(res), col = "red", lwd = 2)
+@
+
+<<echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE>>=
+## Shapiro-Wilk
+shapiro.test(res)
+## Prueba de igualdad de varianzas
+with(universidad, var.test(rentabilidad[genero == 0], rentabilidad[genero == 1]))
+@ 
+
+Los análisis gráficos y la prueba Shapiro-Wilk muestran que es poco probable que la población tenga una distribución normal. Habrá que considerar otras opciones para evaluar la diferencia de medias.
+
+  \section{Actividad 6}
+Se sabe que los salarios pueden variar considerablemente según diferentes factores. Estudien la relación entre las variables Salario y Graduación (tiempo desde la graduación en años) mediante un modelo de regresión lineal. Incluyan el análisis de los residuos del modelo. Interpreten los resultados obtenidos.
+
+Se realizó una regresión lineal simple para predecir el salario en función del tiempo de
+graduación.
+
+<<echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE, results='asis'>>=
+lm <- lm(universidad$salario ~ universidad$graduacion)
+xtable(summary(lm))
+@
+
+<<fig.height=3.5, fig.width=3.5, echo=TRUE, fig.align='center', fig.show='hold', message=FALSE, warning=FALSE, comment="", eval=TRUE>>=
+plot(universidad$salario ~ universidad$graduacion)
+abline(lm, col = "red", lwd = 2)
+@
+
+El análisis arrojó un efecto significativo $(F_{(1,512)} = 325,1, p < 0,01))$ para la regresión. El
+salario predicho por el modelo es igual a $40114.24 + 836.17$ (tiempo de graduación) para el
+tiempo medido en años. El salario se incrementó 836.17 USD por año transcurrido desde la
+graduación (p < 0.01).
+
+Los modelos lineales suponen que los residuos se distribuyen de manera normal y homogénea.
+Observemos los residuos del modelo.
+
+<<fig.height=7, fig.width=6, echo=TRUE, fig.align='center', fig.show='hold', message=FALSE, warning=FALSE, comment="", eval=TRUE>>=
+par(mfrow=c(2,2))
+plot(lm)
+@
+
+El análisis gráfico de los residuos nos muestra que el ajuste normal es regular.
+
+<<echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE>>=
+ks.test(lm$residuals, "pnorm", mean(lm$residuals), sd(lm$residuals))
+@
+
+\end{document}
