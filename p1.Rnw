@@ -322,7 +322,7 @@ Ahora bien, sabemos que:
 $$
 \begin{aligned}
 n &= \frac{z_{\small{0.99}}^2\hat{p}(1-\hat{p})}{e^2} \\
-& \approx 810
+& \approx 411
 \end{aligned}
 $$
 
